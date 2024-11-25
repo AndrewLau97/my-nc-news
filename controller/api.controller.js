@@ -1,9 +1,7 @@
-const endpointsJson=require("../endpoints.json")
+const endpointsJson = require("../endpoints.json");
 
-
-
-function getApi(req,res){
-res.status(200).send({endpoints:endpointsJson})
+function getApi(req, res) {
+  res.status(200).send({ endpoints: endpointsJson });
 }
 
-module.exports={getApi}
+module.exports = { getApi };
