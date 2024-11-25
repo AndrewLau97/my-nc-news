@@ -41,9 +41,9 @@ describe("GET /api/topics", () => {
           });
         });
         expect(topics[0]).toMatchObject({
-          slug:'mitch',
-          description:'The man, the Mitch, the legend'
-        })
+          slug: "mitch",
+          description: "The man, the Mitch, the legend",
+        });
       });
   });
 });
@@ -55,6 +55,43 @@ describe("Wrong URL", () => {
       .expect(404)
       .then(({ body: { message } }) => {
         expect(message).toBe("Not Found");
+      });
+  });
+});
+
+describe("GET /api/articles/:article_id", () => {
+  test("200: Responds with an object of the given article id", () => {
+    return request(app)
+      .get("/api/articles/1")
+      .expect(200)
+      .then(({ body: { article } }) => {
+        expect(article).toMatchObject({
+          article_id: 1,
+          author: "butter_bridge",
+          title: "Living in the shadow of a great man",
+          body: "I find this existence challenging",
+          topic: "mitch",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 100,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+        });
+      });
+  });
+  test("404: Article_id does not exist", () => {
+    return request(app)
+      .get("/api/articles/9001")
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Not Found");
+      });
+  });
+  test("400: Article_id is not a number", () => {
+    return request(app)
+      .get("/api/articles/its-over-nine-thousand")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
       });
   });
 });
