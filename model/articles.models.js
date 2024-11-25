@@ -23,4 +23,19 @@ function fetchArticle(sort_by = "created_at", order = "desc") {
   });
 }
 
-module.exports = { fetchArticleById, fetchArticle };
+function fetchAllCommentsFromAnArticle(article_id) {
+    const queryInsert=`SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC`
+    return db.query(queryInsert,[article_id]).then((results)=>{
+        if(results.rows.length===0){
+            return Promise.reject({status:404,message:"Not Found"})
+        }else{
+            return results.rows
+        }
+        })
+}
+
+module.exports = {
+  fetchArticleById,
+  fetchArticle,
+  fetchAllCommentsFromAnArticle,
+};
