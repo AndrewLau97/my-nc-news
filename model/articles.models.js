@@ -11,4 +11,16 @@ function fetchArticleById(article_id) {
   });
 }
 
-module.exports = { fetchArticleById };
+function fetchArticle(sort_by = "created_at", order = "desc") {
+  let queryInsert = `SELECT articles.article_id, articles.author, title, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.body) AS comment_count 
+ FROM articles LEFT JOIN comments
+ ON articles.article_id=comments.article_id
+ GROUP BY articles.article_id `;
+  queryInsert += `ORDER BY ${sort_by} ${order}`;
+
+  return db.query(queryInsert).then((results) => {
+    return results.rows;
+  });
+}
+
+module.exports = { fetchArticleById, fetchArticle };
