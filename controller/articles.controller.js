@@ -18,9 +18,12 @@ function getArticleById(req, res, next) {
 }
 
 function getArticle(req, res, next) {
-  fetchArticle().then((articles) => {
+  const {sort_by,order}=req.query
+  fetchArticle(sort_by,order).then((articles) => {
     res.status(200).send({ articles });
-  });
+  }).catch((err)=>{
+    next(err)
+  })
 }
 
 function getAllCommentsFromAnArticle(req, res, next) {
