@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const format=require("pg-format")
 
 function fetchArticleById(article_id) {
   const queryInsert = `SELECT * FROM articles WHERE article_id = $1`;
@@ -34,8 +35,19 @@ function fetchAllCommentsFromAnArticle(article_id) {
         })
 }
 
+function insertComment(article_id,username,body){
+    const queryInsert=`INSERT INTO comments(article_id,author,body) 
+    VALUES %L RETURNING *`
+    const queryValues=[[article_id,username,body]]
+    const formattedComment=format(queryInsert,queryValues)
+    return db.query(formattedComment).then((results)=>{return results.rows[0];})
+}
+
+
+
 module.exports = {
   fetchArticleById,
   fetchArticle,
   fetchAllCommentsFromAnArticle,
+  insertComment,
 };
