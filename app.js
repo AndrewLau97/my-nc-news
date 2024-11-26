@@ -10,6 +10,7 @@ const {
 } = require("./controller/articles.controller");
 const { psqlErrors, customErrors, serverError } = require("./error-handling");
 const { deleteCommentById } = require("./controller/comments.controller");
+const { getUsers } = require("./controller/users.controllers");
 const app = express();
 app.use(express.json());
 
@@ -27,7 +28,9 @@ app.post("/api/articles/:article_id/comments", postCommentOnArticle);
 
 app.patch("/api/articles/:article_id", patchArticle);
 
-app.delete("/api/comments/:comment_id",deleteCommentById)
+app.delete("/api/comments/:comment_id",deleteCommentById);
+
+app.get("/api/users", getUsers)
 
 app.all("*", (req, res) => {
   res.status(404).send({ message: "Not Found" });
