@@ -28,7 +28,6 @@ function getAllCommentsFromAnArticle(req, res, next) {
   const promises = [
     fetchAllCommentsFromAnArticle(article_id),
     fetchArticleById(article_id),
-    // checkArticleIdExists(article_id),
   ];
   Promise.all(promises)
     .then(([comments]) => {
@@ -37,11 +36,6 @@ function getAllCommentsFromAnArticle(req, res, next) {
     .catch((err) => {
       next(err);
     });
-  // fetchAllCommentsFromAnArticle(article_id).then((comments)=>{
-  //     res.status(200).send({comments});
-  // }).catch((err)=>{
-  //   next(err)
-  // })
 }
 
 function postCommentOnArticle(req, res, next) {
