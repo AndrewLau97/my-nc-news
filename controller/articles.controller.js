@@ -3,6 +3,7 @@ const {
   fetchArticle,
   fetchAllCommentsFromAnArticle,
   insertComment,
+  checkArticleIdExists,
 } = require("../model/articles.models");
 
 
@@ -25,11 +26,17 @@ function getArticle(req, res, next) {
 
 function getAllCommentsFromAnArticle(req, res, next) {
   const { article_id } = req.params;
-  fetchAllCommentsFromAnArticle(article_id).then((comments)=>{
-      res.status(200).send({comments});
+  const promises=[fetchAllCommentsFromAnArticle(article_id),checkArticleIdExists(article_id)]
+  Promise.all(promises).then(([comments])=>{
+    res.status(200).send({comments})
   }).catch((err)=>{
     next(err)
   })
+  // fetchAllCommentsFromAnArticle(article_id).then((comments)=>{
+  //     res.status(200).send({comments});
+  // }).catch((err)=>{
+  //   next(err)
+  // })
 }
 
 function postCommentOnArticle(req,res,next){

@@ -27,11 +27,7 @@ function fetchArticle(sort_by = "created_at", order = "desc") {
 function fetchAllCommentsFromAnArticle(article_id) {
     const queryInsert=`SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC`
     return db.query(queryInsert,[article_id]).then((results)=>{
-        if(results.rows.length===0){
-            return Promise.reject({status:404,message:"Not Found"})
-        }else{
             return results.rows
-        }
         })
 }
 
@@ -43,11 +39,19 @@ function insertComment(article_id,username,body){
     return db.query(formattedComment).then((results)=>{return results.rows[0];})
 }
 
-
+function checkArticleIdExists(article_id){
+  return db.query(`SELECT * FROM articles WHERE article_id = $1`, [article_id])
+  .then(({rows})=>{
+    if(rows.length===0){
+      return Promise.reject({status:404,message:"Not Found"})
+    }
+  })
+} 
 
 module.exports = {
   fetchArticleById,
   fetchArticle,
   fetchAllCommentsFromAnArticle,
   insertComment,
+  checkArticleIdExists
 };
