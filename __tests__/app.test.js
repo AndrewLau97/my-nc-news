@@ -96,7 +96,7 @@ describe("GET /api/articles/:article_id", () => {
   });
 });
 
-describe("GET /api/articles", () => {
+describe.only("GET /api/articles", () => {
   test("200: Responds with an array of article objects with the correct properties", () => {
     return request(app)
       .get("/api/articles")
@@ -123,6 +123,126 @@ describe("GET /api/articles", () => {
       .expect(200)
       .then(({ body: { articles } }) => {
         expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("200: Takes in order query, responds with an array of article objects sorted by date in ascending order when order query is asc", () => {
+    return request(app)
+      .get("/api/articles?order=asc")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("created_at", { descending: false });
+      });
+  });
+  test("200: Takes in order query, responds with an array of article objects sorted by date in ascending order when order query is desc", () => {
+    return request(app)
+      .get("/api/articles?order=desc")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("200: Takes in order query - case insensitive", () => {
+    return request(app)
+      .get("/api/articles?order=DESC")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("200: Takes in sort_by query, reponds with an array of article objects sorted by title", () => {
+    return request(app)
+      .get("/api/articles?sort_by=title")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("title", { descending: true });
+      });
+  });
+  test("200: Takes in sort_by query, reponds with an array of article objects sorted by topic", () => {
+    return request(app)
+      .get("/api/articles?sort_by=topic")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("topic", { descending: true });
+      });
+  });
+  test("200: Takes in sort_by query, reponds with an array of article objects sorted by author", () => {
+    return request(app)
+      .get("/api/articles?sort_by=author")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("author", { descending: true });
+      });
+  });
+  test("200: Takes in sort_by query, reponds with an array of article objects sorted by votes", () => {
+    return request(app)
+      .get("/api/articles?sort_by=votes")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("votes", { descending: true });
+      });
+  });
+  test("200: Takes in sort_by query, reponds with an array of article objects sorted by article_id", () => {
+    return request(app)
+      .get("/api/articles?sort_by=article_id")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("article_id", { descending: true });
+      });
+  });
+  test("200: Takes in sort_by query, reponds with an array of article objects sorted by created_at", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("200: Takes in sort_by query, reponds with an array of article objects sorted by comment_count", () => {
+    return request(app)
+      .get("/api/articles?sort_by=comment_count")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("comment_count", { descending: true, coerce:true});
+      });
+  });
+  test("200: Takes in sort_by query case-insensitive, reponds with an array of article objects sorted by created_at", () => {
+    return request(app)
+      .get("/api/articles?sort_by=CREATED_at")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("200: Takes in sort_by query and order query", () => {
+    return request(app)
+      .get("/api/articles?sort_by=author&order=asc")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("author", { descending: false });
+      });
+  });
+  test("400: Sort_by query is not valid", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: Order query is not valid - regex testing", () => {
+    return request(app)
+      .get("/api/articles?order=descending")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: Order query is not valid ", () => {
+    return request(app)
+      .get("/api/articles?order=not-valid")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
       });
   });
 });
@@ -358,44 +478,42 @@ describe("PATCH /api/articles/:article_id", () => {
   });
 });
 
-describe("DELETE /api/comments/:comment_id",()=>{
-  test("204: Delete comment of given comment_id",()=>{
-    return request(app)
-    .delete("/api/comments/1")
-    .expect(204)
+describe("DELETE /api/comments/:comment_id", () => {
+  test("204: Delete comment of given comment_id", () => {
+    return request(app).delete("/api/comments/1").expect(204);
   });
-  test("404: Comment_id does not exist",()=>{
+  test("404: Comment_id does not exist", () => {
     return request(app)
-    .delete("/api/comments/9001")
-    .expect(404)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Not Found")
-    })
-  })
-  test("400: Comment_id is not a number",()=>{
+      .delete("/api/comments/9001")
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Not Found");
+      });
+  });
+  test("400: Comment_id is not a number", () => {
     return request(app)
-    .delete("/api/comments/not-a-number")
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Bad request")
-    })
-  })
-})
+      .delete("/api/comments/not-a-number")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+});
 
-describe("GET /api/users",()=>{
-  test("200: Responds with an array of user objects with the correct properties",()=>{
+describe("GET /api/users", () => {
+  test("200: Responds with an array of user objects with the correct properties", () => {
     return request(app)
-    .get("/api/users")
-    .expect(200)
-    .then(({body:{users}})=>{
-      expect(users).toHaveLength(4);
-      users.forEach((user)=>{
-        expect(user).toMatchObject({
-          username:expect.any(String),
-          name:expect.any(String),
-          avatar_url:expect.any(String)
-        })
-      })
-    })
-  })
-})
+      .get("/api/users")
+      .expect(200)
+      .then(({ body: { users } }) => {
+        expect(users).toHaveLength(4);
+        users.forEach((user) => {
+          expect(user).toMatchObject({
+            username: expect.any(String),
+            name: expect.any(String),
+            avatar_url: expect.any(String),
+          });
+        });
+      });
+  });
+});
