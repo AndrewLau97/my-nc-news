@@ -1,5 +1,5 @@
 const db = require("../db/connection");
-const format=require("pg-format")
+const format = require("pg-format");
 
 function fetchArticleById(article_id) {
   const queryInsert = `SELECT * FROM articles WHERE article_id = $1`;
@@ -25,33 +25,51 @@ function fetchArticle(sort_by = "created_at", order = "desc") {
 }
 
 function fetchAllCommentsFromAnArticle(article_id) {
-    const queryInsert=`SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC`
-    return db.query(queryInsert,[article_id]).then((results)=>{
-            return results.rows
-        })
+  const queryInsert = `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC`;
+  return db.query(queryInsert, [article_id]).then((results) => {
+    return results.rows;
+  });
 }
 
-function insertComment(article_id,username,body){
-    const queryInsert=`INSERT INTO comments(article_id,author,body) 
-    VALUES %L RETURNING *`
-    const queryValues=[[article_id,username,body]]
-    const formattedComment=format(queryInsert,queryValues)
-    return db.query(formattedComment).then((results)=>{return results.rows[0];})
+function insertComment(article_id, username, body) {
+  const queryInsert = `INSERT INTO comments(article_id,author,body) 
+    VALUES %L RETURNING *`;
+  const queryValues = [[article_id, username, body]];
+  const formattedComment = format(queryInsert, queryValues);
+  return db.query(formattedComment).then((results) => {
+    return results.rows[0];
+  });
 }
 
-function checkArticleIdExists(article_id){
-  return db.query(`SELECT * FROM articles WHERE article_id = $1`, [article_id])
-  .then(({rows})=>{
-    if(rows.length===0){
-      return Promise.reject({status:404,message:"Not Found"})
-    }
-  })
-} 
+function alterArticle(article_id, inc_votes) {
+  if (!inc_votes || !(typeof inc_votes === "number")) {
+    return Promise.reject({
+      status: 400,
+      message: "Invalid information given, please check information is correct",
+    });
+  }
+  return db
+    .query(`SELECT votes from articles WHERE article_id = $1`, [article_id])
+    .then(({ rows }) => {
+      return rows[0].votes;
+    })
+    .then((votes) => {
+      const newVotes = votes + inc_votes >= 0 ? votes + inc_votes : 0;
+      return db
+        .query(
+          `UPDATE articles SET votes = $1 WHERE article_id = $2 RETURNING *`,
+          [newVotes, article_id]
+        )
+        .then(({ rows }) => {
+          return rows[0];
+        });
+    });
+}
 
 module.exports = {
   fetchArticleById,
   fetchArticle,
   fetchAllCommentsFromAnArticle,
   insertComment,
-  checkArticleIdExists
+  alterArticle,
 };
