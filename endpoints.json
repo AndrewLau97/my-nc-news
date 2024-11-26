@@ -31,7 +31,7 @@
     "description": "serves an article by given article id",
     "queries": [],
     "exampleResponse": {
-      "author_id": 1,
+      "article_id": 1,
       "author": "butter_bridge",
       "title": "Living in the shadow of a great man",
       "body": "I find this existence challenging",
@@ -53,7 +53,7 @@
       "article_id": 1
     }
   },
-  "POST /api/articles/:article_id/comments":{
+  "POST /api/articles/:article_id/comments": {
     "description": "POSTs a comment to a given article by the given id and returns the posted comment object",
     "queries": [],
     "exampleResponse": {
@@ -63,6 +63,20 @@
       "author": "icellusedkars",
       "body": "Replacing the quiet elegance of the dark suit and tie with the casual indifference of these muted earth tones is a form of fashion suicide, but, uh, call me crazy — onyou it works.",
       "article_id": 1
+    }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "PATCHs an articles votes by the given amount, but does not go below 0",
+    "queries": [],
+    "exampleResponse": {
+      "article_id": 1,
+      "author": "butter_bridge",
+      "title": "Living in the shadow of a great man",
+      "body": "I find this existence challenging",
+      "topic": "mitch",
+      "created_at": "2018-05-30T15:59:13.341Z",
+      "votes": 101,
+      "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
     }
   }
 }

@@ -6,6 +6,7 @@ const {
   getArticle,
   getAllCommentsFromAnArticle,
   postCommentOnArticle,
+  patchArticle,
 } = require("./controller/articles.controller");
 const { psqlErrors, customErrors, serverError } = require("./error-handling");
 const app = express();
@@ -21,7 +22,9 @@ app.get("/api/articles", getArticle);
 
 app.get("/api/articles/:article_id/comments", getAllCommentsFromAnArticle);
 
-app.post("/api/articles/:article_id/comments", postCommentOnArticle)
+app.post("/api/articles/:article_id/comments", postCommentOnArticle);
+
+app.patch("/api/articles/:article_id", patchArticle);
 
 app.all("*", (req, res) => {
   res.status(404).send({ message: "Not Found" });
