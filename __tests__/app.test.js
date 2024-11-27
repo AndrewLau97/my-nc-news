@@ -232,6 +232,14 @@ describe("GET /api/articles", () => {
       })
     })
   })
+  test("200: Responds with empty array when no articles of given topic",()=>{
+    return request(app)
+    .get("/api/articles?topic=paper")
+    .expect(200)
+    .then(({body:{articles}})=>{
+      expect(articles).toHaveLength(0);
+    })
+  })
   test("200: Takes in topic query, responds with all articles if topic is omitted",()=>{
     return request(app)
     .get("/api/articles?topic=")
