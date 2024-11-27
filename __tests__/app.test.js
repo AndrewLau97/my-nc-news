@@ -149,7 +149,7 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("created_at", { descending: true });
       });
   });
-  test("200: Takes in sort_by query, reponds with an array of article objects sorted by title", () => {
+  test("200: Takes in sort_by query, responds with an array of article objects sorted by title", () => {
     return request(app)
       .get("/api/articles?sort_by=title")
       .expect(200)
@@ -157,7 +157,7 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("title", { descending: true });
       });
   });
-  test("200: Takes in sort_by query, reponds with an array of article objects sorted by topic", () => {
+  test("200: Takes in sort_by query, responds with an array of article objects sorted by topic", () => {
     return request(app)
       .get("/api/articles?sort_by=topic")
       .expect(200)
@@ -165,7 +165,7 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("topic", { descending: true });
       });
   });
-  test("200: Takes in sort_by query, reponds with an array of article objects sorted by author", () => {
+  test("200: Takes in sort_by query, responds with an array of article objects sorted by author", () => {
     return request(app)
       .get("/api/articles?sort_by=author")
       .expect(200)
@@ -173,7 +173,7 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("author", { descending: true });
       });
   });
-  test("200: Takes in sort_by query, reponds with an array of article objects sorted by votes", () => {
+  test("200: Takes in sort_by query, responds with an array of article objects sorted by votes", () => {
     return request(app)
       .get("/api/articles?sort_by=votes")
       .expect(200)
@@ -181,7 +181,7 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("votes", { descending: true });
       });
   });
-  test("200: Takes in sort_by query, reponds with an array of article objects sorted by article_id", () => {
+  test("200: Takes in sort_by query, responds with an array of article objects sorted by article_id", () => {
     return request(app)
       .get("/api/articles?sort_by=article_id")
       .expect(200)
@@ -189,7 +189,7 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("article_id", { descending: true });
       });
   });
-  test("200: Takes in sort_by query, reponds with an array of article objects sorted by created_at", () => {
+  test("200: Takes in sort_by query, responds with an array of article objects sorted by created_at", () => {
     return request(app)
       .get("/api/articles?sort_by=created_at")
       .expect(200)
@@ -197,7 +197,7 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("created_at", { descending: true });
       });
   });
-  test("200: Takes in sort_by query, reponds with an array of article objects sorted by comment_count", () => {
+  test("200: Takes in sort_by query, responds with an array of article objects sorted by comment_count", () => {
     return request(app)
       .get("/api/articles?sort_by=comment_count")
       .expect(200)
@@ -205,7 +205,7 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("comment_count", { descending: true, coerce:true});
       });
   });
-  test("200: Takes in sort_by query case-insensitive, reponds with an array of article objects sorted by created_at", () => {
+  test("200: Takes in sort_by query case-insensitive, responds with an array of article objects sorted by created_at", () => {
     return request(app)
       .get("/api/articles?sort_by=CREATED_at")
       .expect(200)
@@ -221,6 +221,61 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("author", { descending: false });
       });
   });
+  test("200: Takes in topic query, responds with an array of articles filtered by topic query",()=>{
+    return request(app)
+    .get("/api/articles?topic=mitch")
+    .expect(200)
+    .then(({body:{articles}})=>{
+      expect(articles).toHaveLength(12);
+      articles.forEach((article)=>{
+        expect(article.topic).toBe("mitch")
+      })
+    })
+  })
+  test("200: Takes in topic query, responds with all articles if topic is omitted",()=>{
+    return request(app)
+    .get("/api/articles?topic=")
+    .expect(200)
+    .then(({body:{articles}})=>{
+      expect(articles).toHaveLength(13);
+      articles.forEach((article) => {
+        expect(article).toMatchObject({
+          article_id: expect.any(Number),
+          author: expect.any(String),
+          title: expect.any(String),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          article_img_url: expect.any(String),
+        });
+      });
+    })
+  });
+  test("200: Takes in sort_by,order and topic query",()=>{
+    return request(app)
+    .get("/api/articles?sort_by=author&order=asc&topic=mitch")
+    .expect(200)
+    .then(({body:{articles}})=>{
+      expect(articles).toHaveLength(12);
+      expect(articles).toBeSortedBy("author",{descending:false})
+    })
+  })
+  test("400: Order query is not valid - regex testing", () => {
+    return request(app)
+    .get("/api/articles?order=descending")
+    .expect(400)
+    .then(({ body: { message } }) => {
+      expect(message).toBe("Bad request");
+    });
+  });
+  test("400: Order query is not valid ", () => {
+    return request(app)
+    .get("/api/articles?order=not-valid")
+    .expect(400)
+    .then(({ body: { message } }) => {
+      expect(message).toBe("Bad request");
+    });
+  });
   test("400: Sort_by query is not valid", () => {
     return request(app)
       .get("/api/articles?sort_by=created")
@@ -229,22 +284,14 @@ describe("GET /api/articles", () => {
         expect(message).toBe("Bad request");
       });
   });
-  test("400: Order query is not valid - regex testing", () => {
+  test("404:Topic query does not exist",()=>{
     return request(app)
-      .get("/api/articles?order=descending")
-      .expect(400)
-      .then(({ body: { message } }) => {
-        expect(message).toBe("Bad request");
-      });
-  });
-  test("400: Order query is not valid ", () => {
-    return request(app)
-      .get("/api/articles?order=not-valid")
-      .expect(400)
-      .then(({ body: { message } }) => {
-        expect(message).toBe("Bad request");
-      });
-  });
+    .get("/api/articles?topic=dog")
+    .expect(404)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Not Found")
+    })
+  })
 });
 
 describe("GET /api/articles/:article_id/comments", () => {
