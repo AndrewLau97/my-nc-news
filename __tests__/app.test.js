@@ -78,6 +78,14 @@ describe("GET /api/articles/:article_id", () => {
         });
       });
   });
+  test("200: Returned Object should now include a comment_count property of the total count of all comments with the article id",()=>{
+    return request(app)
+    .get("/api/articles/1")
+    .expect(200)
+    .then(({body:{article}})=>{
+      expect(article.comment_count).toBe("11")
+    })
+  })
   test("404: Article_id does not exist", () => {
     return request(app)
       .get("/api/articles/9001")
@@ -113,6 +121,7 @@ describe("GET /api/articles", () => {
             votes: expect.any(Number),
             article_img_url: expect.any(String),
           });
+          expect(article).toHaveProperty("comment_count")
           expect(article).not.toHaveProperty("body");
         });
       });
