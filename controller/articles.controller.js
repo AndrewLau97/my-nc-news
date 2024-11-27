@@ -5,6 +5,7 @@ const {
   insertComment,
   alterArticle,
   checkTopicExists,
+  checkIfArticleExists,
 } = require("../model/articles.models");
 
 function getArticleById(req, res, next) {
@@ -41,7 +42,7 @@ function getAllCommentsFromAnArticle(req, res, next) {
   const { article_id } = req.params;
   const promises = [
     fetchAllCommentsFromAnArticle(article_id),
-    fetchArticleById(article_id),
+    checkIfArticleExists(article_id),
   ];
   Promise.all(promises)
     .then(([comments]) => {
@@ -67,7 +68,7 @@ function postCommentOnArticle(req, res, next) {
 function patchArticle(req, res, next) {
   const { inc_votes } = req.body;
   const { article_id } = req.params;
-  fetchArticleById(article_id)
+  checkIfArticleExists(article_id)
     .then(() => {
       return alterArticle(article_id, inc_votes);
     })
