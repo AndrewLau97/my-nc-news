@@ -86,6 +86,14 @@ describe("GET /api/articles/:article_id", () => {
       expect(article.comment_count).toBe("11")
     })
   })
+  test("200: Comment count should be 0 if no comments on article id",()=>{
+    return request(app)
+    .get("/api/articles/2")
+    .expect(200)
+    .then(({body:{article}})=>{
+      expect(article.comment_count).toBe("0")
+    })
+  })
   test("404: Article_id does not exist", () => {
     return request(app)
       .get("/api/articles/9001")
