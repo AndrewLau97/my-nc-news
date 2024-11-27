@@ -4,6 +4,7 @@ const {
   fetchAllCommentsFromAnArticle,
   insertComment,
   alterArticle,
+  checkTopicExists,
 } = require("../model/articles.models");
 
 function getArticleById(req, res, next) {
@@ -18,13 +19,23 @@ function getArticleById(req, res, next) {
 }
 
 function getArticle(req, res, next) {
-  const {sort_by,order}=req.query
-  fetchArticle(sort_by,order).then((articles) => {
-    res.status(200).send({ articles });
-  }).catch((err)=>{
-    next(err)
-  })
+  const {sort_by,order,topic}=req.query
+  const promises=[fetchArticle(sort_by,order,topic)]
+  if(topic){
+    promises.push(checkTopicExists(topic))
+  }
+  Promise.all(promises).then(([articles])=>{
+    res.status(200).send({articles})
+  }).catch(next)
+  // fetchArticle(sort_by,order,topic).then((articles) => {
+  //   res.status(200).send({ articles });
+  // }).catch((err)=>{
+  //   next(err)
+  // })
 }
+
+//sorting errors for topic query
+
 
 function getAllCommentsFromAnArticle(req, res, next) {
   const { article_id } = req.params;
