@@ -117,7 +117,8 @@ describe("GET /api/articles", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
-      .then(({ body: { articles } }) => {
+      .then(({ body: { articles ,total_count} }) => {
+        expect(total_count).toBe(13)
         expect(articles).toHaveLength(10);
         articles.forEach((article) => {
           expect(article).toMatchObject({
@@ -245,7 +246,8 @@ describe("GET /api/articles", () => {
     return request(app)
       .get("/api/articles?topic=mitch")
       .expect(200)
-      .then(({ body: { articles } }) => {
+      .then(({ body: { articles ,total_count} }) => {
+        expect(total_count).toBe(12)
         expect(articles).toHaveLength(10);
         articles.forEach((article) => {
           expect(article.topic).toBe("mitch");
@@ -264,8 +266,9 @@ describe("GET /api/articles", () => {
     return request(app)
       .get("/api/articles?topic=")
       .expect(200)
-      .then(({ body: { articles } }) => {
-        expect(articles).toHaveLength(10);
+      .then(({ body: { articles ,total_count} }) => {
+        expect(total_count).toBe(13);
+        expect(articles).toHaveLength(10)
         articles.forEach((article) => {
           expect(article).toMatchObject({
             article_id: expect.any(Number),
@@ -283,88 +286,106 @@ describe("GET /api/articles", () => {
     return request(app)
       .get("/api/articles?sort_by=author&order=asc&topic=mitch")
       .expect(200)
-      .then(({ body: { articles } }) => {
-        expect(articles).toHaveLength(10);
+      .then(({ body: { articles,total_count } }) => {
+        expect(total_count).toBe(12);
         expect(articles).toBeSortedBy("author", { descending: false });
       });
   });
-  test("200: Takes in limit query, limits the response given by limit amount",()=>{
+  test("200: Takes in limit query, limits the response given by limit amount", () => {
     return request(app)
-    .get("/api/articles?limit=5")
-    .expect(200)
-    .then(({body:{articles}})=>{
-      expect(articles).toHaveLength(5);
-    })
-  })
-  test("200: No limit query given - default limit response to 10",()=>{
+      .get("/api/articles?limit=5")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toHaveLength(5);
+      });
+  });
+  test("200: No limit query given - default limit response to 10", () => {
     return request(app)
-    .get("/api/articles")
-    .expect(200)
-    .then(({body:{articles}})=>{
-      expect(articles).toHaveLength(10);
-    })
-  })
-  test("200: P query denoting the page to start at",()=>{
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toHaveLength(10);
+      });
+  });
+  test("200: P query denoting the page to start at", () => {
     return request(app)
-    .get("/api/articles?p=2")
-    .expect(200)
-    .then(({body:{articles}})=>{
-      expect(articles).toHaveLength(3);
-    })
-  })
-  test("200: No P query, defaults P to 1",()=>{
+      .get("/api/articles?p=2")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toHaveLength(3);
+      });
+  });
+  test("200: No P query, defaults P to 1", () => {
     return request(app)
-    .get("/api/articles")
-    .expect(200)
-    .then(({body:{articles}})=>{
-      expect(articles).toHaveLength(10);
-    })
-  })
-  test("200: Contains Limit, P and sort by query",()=>{
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toHaveLength(10);
+      });
+  });
+  test("200: Contains Limit, P and sort by query", () => {
     return request(app)
-    .get("/api/articles?limit=5&p=2&sort_by=article_id")
-    .expect(200)
-    .then(({body:{articles}})=>{
-      expect(articles).toHaveLength(5);
-      let count =8;
-      articles.forEach((article)=>{
-        expect(article.article_id).toBe(count);
-        count--;
-      })
-    })
-  })
-  test("400: P query cannot be less than 1",()=>{
+      .get("/api/articles?limit=5&p=2&sort_by=article_id")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toHaveLength(5);
+        let count = 8;
+        articles.forEach((article) => {
+          expect(article.article_id).toBe(count);
+          count--;
+        });
+      });
+  });
+  test("200: Responds with a total count property that displays total number of articles", () => {
     return request(app)
-    .get("/api/articles?p=0")
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Bad request");
-    })
-  })
-  test("400: P query is not a number",()=>{
+      .get("/api/articles?limit=5&p=2")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(articles).toHaveLength(5);
+        expect(total_count).toBe(13);
+      });
+  });
+  test("200: Responds with a total count property that displays total number of articles after being filtered", () => {
     return request(app)
-    .get("/api/articles?p=not-a-number")
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Bad request");
-    })
-  })
-  test("400: Limit query is not a number",()=>{
+      .get("/api/articles?limit=5&p=2&topic=mitch")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(articles).toHaveLength(5);
+        expect(total_count).toBe(12);
+      });
+  });
+  test("400: P query cannot be less than 1", () => {
     return request(app)
-    .get("/api/articles?limit=not-a-number")
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Bad request")
-    })
-  })
-  test("400: Limit query is 0 or less",()=>{
+      .get("/api/articles?p=0")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: P query is not a number", () => {
     return request(app)
-    .get("/api/articles?limit=0")
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Bad request")
-    })
-  })
+      .get("/api/articles?p=not-a-number")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: Limit query is not a number", () => {
+    return request(app)
+      .get("/api/articles?limit=not-a-number")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: Limit query is 0 or less", () => {
+    return request(app)
+      .get("/api/articles?limit=0")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
   test("400: Order query is not valid - regex testing", () => {
     return request(app)
       .get("/api/articles?order=descending")
@@ -399,101 +420,105 @@ describe("GET /api/articles", () => {
   });
 });
 
-describe("POST /api/articles",()=>{
-  test("200: POSTs given information into articles and returns information regarding the article, includiing created_at, votes, article_id and comment_count",()=>{
+describe("POST /api/articles", () => {
+  test("200: POSTs given information into articles and returns information regarding the article, includiing created_at, votes, article_id and comment_count", () => {
     return request(app)
-    .post("/api/articles")
-    .send({
-      author:"butter_bridge",
-      title:"test title",
-      body:"test body",
-      topic:"mitch",
-      article_img_url:"https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
-    })
-    .expect(200)
-    .then(({body:{article}})=>{
-      expect(article).toEqual({
-        author:"butter_bridge",
-        title:"test title",
-        body:"test body",
-        topic:"mitch",
-        article_img_url:"https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
-        article_id:14,
-        votes:0,
-        created_at:expect.any(String),
-        comment_count:"0",
+      .post("/api/articles")
+      .send({
+        author: "butter_bridge",
+        title: "test title",
+        body: "test body",
+        topic: "mitch",
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
       })
-    })
-  })
-  test("200: If no article_url is given, default img should be inserted",()=>{
-    return request(app)
-    .post("/api/articles")
-    .send({
-      author:"butter_bridge",
-      title:"test title",
-      body:"test body",
-      topic:"mitch",
-    })
-    .expect(200)
-    .then(({body:{article}})=>{
-      expect(article.article_img_url).toBe("https://images.pexels.com/photos/97050/pexels-photo-97050.jpeg?w=700&h=700")
-    })
+      .expect(200)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          author: "butter_bridge",
+          title: "test title",
+          body: "test body",
+          topic: "mitch",
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          article_id: 14,
+          votes: 0,
+          created_at: expect.any(String),
+          comment_count: "0",
+        });
+      });
   });
-  test("404: Author is not a valid user",()=>{
+  test("200: If no article_url is given, default img should be inserted", () => {
     return request(app)
-    .post("/api/articles")
-    .send({
-      author:"fake_butter_bridge",
-      title:"test title",
-      body:"test body",
-      topic:"mitch",
-    })
-    .expect(404)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Invalid user, please create an account")
-    })
-  })
-  test("404: Topic does not exist",()=>{
+      .post("/api/articles")
+      .send({
+        author: "butter_bridge",
+        title: "test title",
+        body: "test body",
+        topic: "mitch",
+      })
+      .expect(200)
+      .then(({ body: { article } }) => {
+        expect(article.article_img_url).toBe(
+          "https://images.pexels.com/photos/97050/pexels-photo-97050.jpeg?w=700&h=700"
+        );
+      });
+  });
+  test("404: Author is not a valid user", () => {
     return request(app)
-    .post("/api/articles")
-    .send({
-      author:"butter_bridge",
-      title:"test title",
-      body:"test body",
-      topic:"not-a-topic",
-    })
-    .expect(404)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Topic does not exist")
-    })
-  })
-  test("400: Missing Information - no title",()=>{
+      .post("/api/articles")
+      .send({
+        author: "fake_butter_bridge",
+        title: "test title",
+        body: "test body",
+        topic: "mitch",
+      })
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Invalid user, please create an account");
+      });
+  });
+  test("404: Topic does not exist", () => {
     return request(app)
-    .post("/api/articles")
-    .send({
-      author:"butter_bridge",
-      body:"test body",
-      topic:"not-a-topic",
-    })
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Missing information")
-    })
-  })
-  test("400: Missing Information - no body",()=>{
+      .post("/api/articles")
+      .send({
+        author: "butter_bridge",
+        title: "test title",
+        body: "test body",
+        topic: "not-a-topic",
+      })
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Topic does not exist");
+      });
+  });
+  test("400: Missing Information - no title", () => {
     return request(app)
-    .post("/api/articles")
-    .send({
-      author:"butter_bridge",
-      title:"test title",
-      topic:"not-a-topic",
-    })
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Missing information")
-    })
-  })
-})
+      .post("/api/articles")
+      .send({
+        author: "butter_bridge",
+        body: "test body",
+        topic: "not-a-topic",
+      })
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Missing information");
+      });
+  });
+  test("400: Missing Information - no body", () => {
+    return request(app)
+      .post("/api/articles")
+      .send({
+        author: "butter_bridge",
+        title: "test title",
+        topic: "not-a-topic",
+      })
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Missing information");
+      });
+  });
+});
 
 describe("GET /api/articles/:article_id/comments", () => {
   test("200: Responds with an array of comments for the given article id with the correct properties", () => {
@@ -748,85 +773,85 @@ describe("DELETE /api/comments/:comment_id", () => {
   });
 });
 
-describe("PATCH /api/comments/:comment_id",()=>{
-  test("200: Patch votes of comment by given comment id with a postive value",()=>{
+describe("PATCH /api/comments/:comment_id", () => {
+  test("200: Patch votes of comment by given comment id with a postive value", () => {
     return request(app)
-    .patch("/api/comments/1")
-    .send({ inc_votes:4})
-    .expect(200)
-    .then(({body:{comment}})=>{
-      expect(comment).toMatchObject({
-        comment_id:1,
-        body:"Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-        article_id:9,
-        author:"butter_bridge",
-        votes:20,
-        created_at:"2020-04-06T12:17:00.000Z"
-      })
-    })
-  })
-  test("200: Patch votes of comment by given comment id with a negative value, does not go below 0",()=>{
-    return request(app)
-    .patch("/api/comments/1")
-    .send({ inc_votes:-17})
-    .expect(200)
-    .then(({body:{comment}})=>{
-      expect(comment).toMatchObject({
-        comment_id:1,
-        body:"Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-        article_id:9,
-        author:"butter_bridge",
-        votes:0,
-        created_at:"2020-04-06T12:17:00.000Z"
-      })
-    })
+      .patch("/api/comments/1")
+      .send({ inc_votes: 4 })
+      .expect(200)
+      .then(({ body: { comment } }) => {
+        expect(comment).toMatchObject({
+          comment_id: 1,
+          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          article_id: 9,
+          author: "butter_bridge",
+          votes: 20,
+          created_at: "2020-04-06T12:17:00.000Z",
+        });
+      });
   });
-  test("404: Comment id does not exist",()=>{
+  test("200: Patch votes of comment by given comment id with a negative value, does not go below 0", () => {
     return request(app)
-    .patch("/api/comments/9001")
-    .send({inc_votes:4})
-    .expect(404)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Not Found")
-    })
-  })
-  test("400: Comment id is not a number",()=>{
+      .patch("/api/comments/1")
+      .send({ inc_votes: -17 })
+      .expect(200)
+      .then(({ body: { comment } }) => {
+        expect(comment).toMatchObject({
+          comment_id: 1,
+          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          article_id: 9,
+          author: "butter_bridge",
+          votes: 0,
+          created_at: "2020-04-06T12:17:00.000Z",
+        });
+      });
+  });
+  test("404: Comment id does not exist", () => {
     return request(app)
-    .patch("/api/comments/not-a-number")
-    .send({inc_votes:4})
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Bad request")
-    })
-  })
-  test("400: No information given",()=>{
+      .patch("/api/comments/9001")
+      .send({ inc_votes: 4 })
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Not Found");
+      });
+  });
+  test("400: Comment id is not a number", () => {
     return request(app)
-    .patch("/api/comments/1")
-    .send({})
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Bad request")
-    })
-  })
-  test("400: Wrong key-name given in body",()=>{
+      .patch("/api/comments/not-a-number")
+      .send({ inc_votes: 4 })
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: No information given", () => {
     return request(app)
-    .patch("/api/comments/1")
-    .send({votes:4})
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Bad request")
-    })
-  })
-  test("400: Body value is not a number",()=>{
+      .patch("/api/comments/1")
+      .send({})
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: Wrong key-name given in body", () => {
     return request(app)
-    .patch("/api/comments/1")
-    .send({inc_votes:"fifty"})
-    .expect(400)
-    .then(({body:{message}})=>{
-      expect(message).toBe("Bad request")
-    })
-  })
-})
+      .patch("/api/comments/1")
+      .send({ votes: 4 })
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: Body value is not a number", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: "fifty" })
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+});
 
 describe("GET /api/users", () => {
   test("200: Responds with an array of user objects with the correct properties", () => {
