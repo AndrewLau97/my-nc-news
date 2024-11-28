@@ -144,6 +144,18 @@ function insertArticle(author, title, body, topic, article_img_url) {
   });
 }
 
+function countArticles(topic) {
+  let queryInsert = `SELECT * FROM articles `;
+  const queryValues = [];
+  if (topic) {
+    queryInsert += `WHERE topic =$1 `;
+    queryValues.push(topic);
+  }
+  return db.query(queryInsert, queryValues).then(({ rows }) => {
+    return rows.length;
+  });
+}
+
 module.exports = {
   fetchArticleById,
   fetchArticle,
@@ -153,4 +165,5 @@ module.exports = {
   checkTopicExists,
   checkIfArticleExists,
   insertArticle,
+  countArticles,
 };

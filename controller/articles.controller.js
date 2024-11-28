@@ -7,6 +7,7 @@ const {
   checkTopicExists,
   checkIfArticleExists,
   insertArticle,
+  countArticles,
 } = require("../model/articles.models");
 
 function getArticleById(req, res, next) {
@@ -21,26 +22,22 @@ function getArticleById(req, res, next) {
 }
 
 function getArticle(req, res, next) {
-  const { sort_by, order, topic , limit, p} = req.query;
-  const promises = [fetchArticle(sort_by, order, topic, limit, p)];
+  const { sort_by, order, topic, limit, p } = req.query;
+  const promises = [
+    fetchArticle(sort_by, order, topic, limit, p),
+    countArticles(topic),
+  ];
   if (topic) {
     promises.push(checkTopicExists(topic));
   }
   Promise.all(promises)
-    .then(([articles]) => {
-      res.status(200).send({ articles });
+    .then(([articles, total_count]) => {
+      res.status(200).send({ articles, total_count });
     })
-    .catch((err)=>{
-      next(err)
+    .catch((err) => {
+      next(err);
     });
-  // fetchArticle(sort_by,order,topic).then((articles) => {
-  //   res.status(200).send({ articles });
-  // }).catch((err)=>{
-  //   next(err)
-  // })
 }
-
-//sorting errors for topic query
 
 function getAllCommentsFromAnArticle(req, res, next) {
   const { article_id } = req.params;
@@ -82,15 +79,17 @@ function patchArticle(req, res, next) {
     .catch(next);
 }
 
-function postArticle(req,res,next){
-  const {author,title,body,topic,article_img_url}=req.body
-  insertArticle(author,title,body,topic,article_img_url).then((id)=>{
-    return fetchArticleById(id)
-  }).then((article)=>{
-    res.status(200).send({article})
-  }).catch(next)
+function postArticle(req, res, next) {
+  const { author, title, body, topic, article_img_url } = req.body;
+  insertArticle(author, title, body, topic, article_img_url)
+    .then((id) => {
+      return fetchArticleById(id);
+    })
+    .then((article) => {
+      res.status(200).send({ article });
+    })
+    .catch(next);
 }
-
 
 module.exports = {
   getArticleById,
@@ -98,5 +97,5 @@ module.exports = {
   getAllCommentsFromAnArticle,
   postCommentOnArticle,
   patchArticle,
-  postArticle
+  postArticle,
 };
