@@ -110,6 +110,22 @@ function checkTopicExists(topic) {
     });
 }
 
+function insertArticle(author,title,body,topic,article_img_url){
+  let queryInsert=`INSERT INTO articles(author, title, body, topic`
+  const queryValues=[[author,title,body,topic]]
+  if(article_img_url){
+    queryInsert+=`, article_img_url)
+    VALUES %L RETURNING *`
+    queryValues[0].push(article_img_url)
+  }else{
+    queryInsert+=`)
+    VALUES %L RETURNING *`
+  }
+  const formattedData=format(queryInsert,queryValues)
+  return db.query(formattedData).then(({rows})=>{return rows[0].article_id;})
+}
+
+
 module.exports = {
   fetchArticleById,
   fetchArticle,
@@ -118,4 +134,5 @@ module.exports = {
   alterArticle,
   checkTopicExists,
   checkIfArticleExists,
+  insertArticle
 };

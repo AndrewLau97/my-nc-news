@@ -6,7 +6,10 @@ exports.psqlErrors = (err, req, res, next) => {
     res.status(404).send({message:"Article Id does not exist"})
   }
   else if(err.code==="23503"&&err.detail.includes("author")){
-    res.status(401).send({message:"Invalid user, please create an account"})
+    res.status(404).send({message:"Invalid user, please create an account"})
+  }
+  else if(err.code==="23503"&&err.detail.includes("topic")){
+    res.status(404).send({message:"Topic does not exist"})
   }
   else if(err.code==="23502"){
     res.status(400).send({message:"Missing information"})
