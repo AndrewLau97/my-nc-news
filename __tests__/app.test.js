@@ -575,6 +575,86 @@ describe("DELETE /api/comments/:comment_id", () => {
   });
 });
 
+describe("PATCH /api/comments/:comment_id",()=>{
+  test("200: Patch votes of comment by given comment id with a postive value",()=>{
+    return request(app)
+    .patch("/api/comments/1")
+    .send({ inc_votes:4})
+    .expect(200)
+    .then(({body:{comment}})=>{
+      expect(comment).toMatchObject({
+        comment_id:1,
+        body:"Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+        article_id:9,
+        author:"butter_bridge",
+        votes:20,
+        created_at:"2020-04-06T12:17:00.000Z"
+      })
+    })
+  })
+  test("200: Patch votes of comment by given comment id with a negative value, does not go below 0",()=>{
+    return request(app)
+    .patch("/api/comments/1")
+    .send({ inc_votes:-17})
+    .expect(200)
+    .then(({body:{comment}})=>{
+      expect(comment).toMatchObject({
+        comment_id:1,
+        body:"Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+        article_id:9,
+        author:"butter_bridge",
+        votes:0,
+        created_at:"2020-04-06T12:17:00.000Z"
+      })
+    })
+  });
+  test("404: Comment id does not exist",()=>{
+    return request(app)
+    .patch("/api/comments/9001")
+    .send({inc_votes:4})
+    .expect(404)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Not Found")
+    })
+  })
+  test("400: Comment id is not a number",()=>{
+    return request(app)
+    .patch("/api/comments/not-a-number")
+    .send({inc_votes:4})
+    .expect(400)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Bad request")
+    })
+  })
+  test("400: No information given",()=>{
+    return request(app)
+    .patch("/api/comments/1")
+    .send({})
+    .expect(400)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Bad request")
+    })
+  })
+  test("400: Wrong key-name given in body",()=>{
+    return request(app)
+    .patch("/api/comments/1")
+    .send({votes:4})
+    .expect(400)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Bad request")
+    })
+  })
+  test("400: Body value is not a number",()=>{
+    return request(app)
+    .patch("/api/comments/1")
+    .send({inc_votes:"fifty"})
+    .expect(400)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Bad request")
+    })
+  })
+})
+
 describe("GET /api/users", () => {
   test("200: Responds with an array of user objects with the correct properties", () => {
     return request(app)
