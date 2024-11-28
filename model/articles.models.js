@@ -17,7 +17,7 @@ function fetchArticleById(article_id) {
   });
 }
 
-function checkIfArticleExists(article_id){
+function checkIfArticleExists(article_id) {
   const queryInsert = `SELECT * FROM articles WHERE article_id = $1`;
   return db.query(queryInsert, [article_id]).then((result) => {
     if (result.rows.length === 0) {
@@ -104,8 +104,8 @@ function checkTopicExists(topic) {
   return db
     .query(`SELECT * FROM topics WHERE slug = $1`, [topic])
     .then(({ rows }) => {
-      if(rows.length===0){
-        return Promise.reject({status:404,message:"Not Found"})
+      if (rows.length === 0) {
+        return Promise.reject({ status: 404, message: "Not Found" });
       }
     });
 }
@@ -117,5 +117,5 @@ module.exports = {
   insertComment,
   alterArticle,
   checkTopicExists,
-  checkIfArticleExists
+  checkIfArticleExists,
 };

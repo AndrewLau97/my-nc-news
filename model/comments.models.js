@@ -3,12 +3,13 @@ const db = require("../db/connection");
 
 function deleteCommentFromDB(comment_id) {
   return db
-    .query(`DELETE FROM comments WHERE comment_id=$1 RETURNING *`, [comment_id]).then(()=>{})
-    // .then(({ rowCount }) => {
-    //   if (!rowCount) {
-    //     return Promise.reject({ status: 404, message: "Not Found" });
-    //   }
-    // });
+    .query(`DELETE FROM comments WHERE comment_id=$1 RETURNING *`, [comment_id])
+    .then(() => {});
+  // .then(({ rowCount }) => {
+  //   if (!rowCount) {
+  //     return Promise.reject({ status: 404, message: "Not Found" });
+  //   }
+  // });
 }
 
 function checkCommentExists(comment_id) {
