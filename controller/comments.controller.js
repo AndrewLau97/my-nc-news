@@ -1,6 +1,7 @@
 const {
   deleteCommentFromDB,
   checkCommentExists,
+  patchCommentById,
 } = require("../model/comments.models");
 
 function deleteCommentById(req, res, next) {
@@ -19,4 +20,14 @@ function deleteCommentById(req, res, next) {
     .catch(next);
 }
 
-module.exports = { deleteCommentById };
+function updateCommentById(req,res,next){
+  const {comment_id}=req.params
+  const {inc_votes}=req.body
+  checkCommentExists(comment_id).then(()=>{
+    return patchCommentById(comment_id,inc_votes)
+  }).then((comment)=>{
+    res.status(200).send({comment})
+  }).catch(next)
+}
+
+module.exports = { deleteCommentById ,updateCommentById};
