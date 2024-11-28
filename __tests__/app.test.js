@@ -118,7 +118,7 @@ describe("GET /api/articles", () => {
       .get("/api/articles")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles).toHaveLength(13);
+        expect(articles).toHaveLength(10);
         articles.forEach((article) => {
           expect(article).toMatchObject({
             article_id: expect.any(Number),
@@ -246,7 +246,7 @@ describe("GET /api/articles", () => {
       .get("/api/articles?topic=mitch")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles).toHaveLength(12);
+        expect(articles).toHaveLength(10);
         articles.forEach((article) => {
           expect(article.topic).toBe("mitch");
         });
@@ -265,7 +265,7 @@ describe("GET /api/articles", () => {
       .get("/api/articles?topic=")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles).toHaveLength(13);
+        expect(articles).toHaveLength(10);
         articles.forEach((article) => {
           expect(article).toMatchObject({
             article_id: expect.any(Number),
@@ -284,10 +284,87 @@ describe("GET /api/articles", () => {
       .get("/api/articles?sort_by=author&order=asc&topic=mitch")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles).toHaveLength(12);
+        expect(articles).toHaveLength(10);
         expect(articles).toBeSortedBy("author", { descending: false });
       });
   });
+  test("200: Takes in limit query, limits the response given by limit amount",()=>{
+    return request(app)
+    .get("/api/articles?limit=5")
+    .expect(200)
+    .then(({body:{articles}})=>{
+      expect(articles).toHaveLength(5);
+    })
+  })
+  test("200: No limit query given - default limit response to 10",()=>{
+    return request(app)
+    .get("/api/articles")
+    .expect(200)
+    .then(({body:{articles}})=>{
+      expect(articles).toHaveLength(10);
+    })
+  })
+  test("200: P query denoting the page to start at",()=>{
+    return request(app)
+    .get("/api/articles?p=2")
+    .expect(200)
+    .then(({body:{articles}})=>{
+      expect(articles).toHaveLength(3);
+    })
+  })
+  test("200: No P query, defaults P to 1",()=>{
+    return request(app)
+    .get("/api/articles")
+    .expect(200)
+    .then(({body:{articles}})=>{
+      expect(articles).toHaveLength(10);
+    })
+  })
+  test("200: Contains Limit, P and sort by query",()=>{
+    return request(app)
+    .get("/api/articles?limit=5&p=2&sort_by=article_id")
+    .expect(200)
+    .then(({body:{articles}})=>{
+      expect(articles).toHaveLength(5);
+      let count =8;
+      articles.forEach((article)=>{
+        expect(article.article_id).toBe(count);
+        count--;
+      })
+    })
+  })
+  test("400: P query cannot be less than 1",()=>{
+    return request(app)
+    .get("/api/articles?p=0")
+    .expect(400)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Bad request");
+    })
+  })
+  test("400: P query is not a number",()=>{
+    return request(app)
+    .get("/api/articles?p=not-a-number")
+    .expect(400)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Bad request");
+    })
+  })
+  test("400: Limit query is not a number",()=>{
+    return request(app)
+    .get("/api/articles?limit=not-a-number")
+    .expect(400)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Bad request")
+    })
+  })
+  test("400: Limit query is 0 or less",()=>{
+    return request(app)
+    .get("/api/articles?limit=0")
+    .expect(400)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Bad request")
+    })
+  })
   test("400: Order query is not valid - regex testing", () => {
     return request(app)
       .get("/api/articles?order=descending")
@@ -322,7 +399,7 @@ describe("GET /api/articles", () => {
   });
 });
 
-describe.only("POST /api/articles",()=>{
+describe("POST /api/articles",()=>{
   test("200: POSTs given information into articles and returns information regarding the article, includiing created_at, votes, article_id and comment_count",()=>{
     return request(app)
     .post("/api/articles")

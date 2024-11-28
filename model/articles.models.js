@@ -26,7 +26,13 @@ function checkIfArticleExists(article_id) {
   });
 }
 
-function fetchArticle(sort_by = "created_at", order = "desc", topic) {
+function fetchArticle(
+  sort_by = "created_at",
+  order = "desc",
+  topic,
+  limit = 10,
+  p = 1
+) {
   const validOrderQueries = /^(asc)$|^(desc)$/i;
   const validSortByQueries = [
     "article_id",
@@ -37,6 +43,15 @@ function fetchArticle(sort_by = "created_at", order = "desc", topic) {
     "votes",
     "comment_count",
   ];
+  const offset = (p - 1) * limit;
+  if (
+    !validOrderQueries.test(order) ||
+    !validSortByQueries.includes(sort_by.toLowerCase()) ||
+    limit <= 0 ||
+    p <= 0
+  ) {
+    return Promise.reject({ status: 400, message: "Bad request" });
+  }
   const queryValues = [];
   let queryInsert = `SELECT articles.article_id, articles.author, title, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.body) AS comment_count 
  FROM articles LEFT JOIN comments
@@ -46,13 +61,15 @@ function fetchArticle(sort_by = "created_at", order = "desc", topic) {
     queryValues.push(topic);
   }
   queryInsert += `GROUP BY articles.article_id 
-  ORDER BY ${sort_by} ${order}`;
-  if (
-    !validOrderQueries.test(order) ||
-    !validSortByQueries.includes(sort_by.toLowerCase())
-  ) {
-    return Promise.reject({ status: 400, message: "Bad request" });
+  ORDER BY ${sort_by} ${order} `;
+  if (topic) {
+    queryInsert += `LIMIT $2 OFFSET $3`;
+  } else {
+    queryInsert += `LIMIT $1 OFFSET $2`;
   }
+  queryValues.push(limit);
+  queryValues.push(offset);
+
   return db.query(queryInsert, queryValues).then(({ rows }) => {
     return rows;
   });
@@ -110,21 +127,22 @@ function checkTopicExists(topic) {
     });
 }
 
-function insertArticle(author,title,body,topic,article_img_url){
-  let queryInsert=`INSERT INTO articles(author, title, body, topic`
-  const queryValues=[[author,title,body,topic]]
-  if(article_img_url){
-    queryInsert+=`, article_img_url)
-    VALUES %L RETURNING *`
-    queryValues[0].push(article_img_url)
-  }else{
-    queryInsert+=`)
-    VALUES %L RETURNING *`
+function insertArticle(author, title, body, topic, article_img_url) {
+  let queryInsert = `INSERT INTO articles(author, title, body, topic`;
+  const queryValues = [[author, title, body, topic]];
+  if (article_img_url) {
+    queryInsert += `, article_img_url)
+    VALUES %L RETURNING *`;
+    queryValues[0].push(article_img_url);
+  } else {
+    queryInsert += `)
+    VALUES %L RETURNING *`;
   }
-  const formattedData=format(queryInsert,queryValues)
-  return db.query(formattedData).then(({rows})=>{return rows[0].article_id;})
+  const formattedData = format(queryInsert, queryValues);
+  return db.query(formattedData).then(({ rows }) => {
+    return rows[0].article_id;
+  });
 }
-
 
 module.exports = {
   fetchArticleById,
@@ -134,5 +152,5 @@ module.exports = {
   alterArticle,
   checkTopicExists,
   checkIfArticleExists,
-  insertArticle
+  insertArticle,
 };
