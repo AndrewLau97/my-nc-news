@@ -322,6 +322,102 @@ describe("GET /api/articles", () => {
   });
 });
 
+describe.only("POST /api/articles",()=>{
+  test("200: POSTs given information into articles and returns information regarding the article, includiing created_at, votes, article_id and comment_count",()=>{
+    return request(app)
+    .post("/api/articles")
+    .send({
+      author:"butter_bridge",
+      title:"test title",
+      body:"test body",
+      topic:"mitch",
+      article_img_url:"https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+    })
+    .expect(200)
+    .then(({body:{article}})=>{
+      expect(article).toEqual({
+        author:"butter_bridge",
+        title:"test title",
+        body:"test body",
+        topic:"mitch",
+        article_img_url:"https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+        article_id:14,
+        votes:0,
+        created_at:expect.any(String),
+        comment_count:"0",
+      })
+    })
+  })
+  test("200: If no article_url is given, default img should be inserted",()=>{
+    return request(app)
+    .post("/api/articles")
+    .send({
+      author:"butter_bridge",
+      title:"test title",
+      body:"test body",
+      topic:"mitch",
+    })
+    .expect(200)
+    .then(({body:{article}})=>{
+      expect(article.article_img_url).toBe("https://images.pexels.com/photos/97050/pexels-photo-97050.jpeg?w=700&h=700")
+    })
+  });
+  test("404: Author is not a valid user",()=>{
+    return request(app)
+    .post("/api/articles")
+    .send({
+      author:"fake_butter_bridge",
+      title:"test title",
+      body:"test body",
+      topic:"mitch",
+    })
+    .expect(404)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Invalid user, please create an account")
+    })
+  })
+  test("404: Topic does not exist",()=>{
+    return request(app)
+    .post("/api/articles")
+    .send({
+      author:"butter_bridge",
+      title:"test title",
+      body:"test body",
+      topic:"not-a-topic",
+    })
+    .expect(404)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Topic does not exist")
+    })
+  })
+  test("400: Missing Information - no title",()=>{
+    return request(app)
+    .post("/api/articles")
+    .send({
+      author:"butter_bridge",
+      body:"test body",
+      topic:"not-a-topic",
+    })
+    .expect(400)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Missing information")
+    })
+  })
+  test("400: Missing Information - no body",()=>{
+    return request(app)
+    .post("/api/articles")
+    .send({
+      author:"butter_bridge",
+      title:"test title",
+      topic:"not-a-topic",
+    })
+    .expect(400)
+    .then(({body:{message}})=>{
+      expect(message).toBe("Missing information")
+    })
+  })
+})
+
 describe("GET /api/articles/:article_id/comments", () => {
   test("200: Responds with an array of comments for the given article id with the correct properties", () => {
     return request(app)
@@ -419,14 +515,14 @@ describe("POST /api/articles/:article_id/comments", () => {
         expect(message).toBe("Bad request");
       });
   });
-  test("400: Invalid user", () => {
+  test("404: Invalid user", () => {
     return request(app)
       .post("/api/articles/1/comments")
       .send({
         username: "lurk",
         body: "test comment body",
       })
-      .expect(401)
+      .expect(404)
       .then(({ body: { message } }) => {
         expect(message).toBe("Invalid user, please create an account");
       });

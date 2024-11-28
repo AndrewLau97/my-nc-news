@@ -27,6 +27,25 @@
       ]
     }
   },
+  "POST /api/articles": {
+    "description": "POSTs response object into articles that contains the author,title,body topic, and optional article_img_url, and responds with all information regarding the new article",
+    "queries": [],
+    "exampleResponse": {
+      "articles": [
+        {
+          "title": "Seafood substitutions are increasing",
+          "topic": "cooking",
+          "author": "weegembump",
+          "article_id": 14,
+          "created_at": "2018-05-30T15:59:13.341Z",
+          "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          "votes": 0,
+          "comment_count": 6,
+          "body":"TEST body"
+        }
+      ]
+    }
+  },
   "GET /api/articles?sort_by=topic": {
     "description": "serves an array of all articles sorted by sort_by query - example given topic",
     "queries": ["author", "topic", "sort_by", "order"],
