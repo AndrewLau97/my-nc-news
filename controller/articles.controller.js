@@ -41,8 +41,9 @@ function getArticle(req, res, next) {
 
 function getAllCommentsFromAnArticle(req, res, next) {
   const { article_id } = req.params;
+  const { limit , p} = req.query;
   const promises = [
-    fetchAllCommentsFromAnArticle(article_id),
+    fetchAllCommentsFromAnArticle(article_id, limit ,p),
     checkIfArticleExists(article_id),
   ];
   Promise.all(promises)

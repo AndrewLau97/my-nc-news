@@ -75,9 +75,14 @@ function fetchArticle(
   });
 }
 
-function fetchAllCommentsFromAnArticle(article_id) {
-  const queryInsert = `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC`;
-  return db.query(queryInsert, [article_id]).then((results) => {
+function fetchAllCommentsFromAnArticle(article_id, limit=10,page=1) {
+  if(limit<=0 || page<=0){
+    return Promise.reject({status:400,message:"Bad request"})
+  }
+  const offset=(page-1)*limit
+  let queryInsert = `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC `;
+  queryInsert+=`LIMIT $2 OFFSET $3`
+  return db.query(queryInsert, [article_id, limit, offset]).then((results) => {
     return results.rows;
   });
 }
