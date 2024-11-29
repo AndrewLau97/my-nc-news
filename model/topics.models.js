@@ -12,7 +12,6 @@ function insertTopic(slug, description) {
  VALUES %L RETURNING *`
 const queryValues = [[slug,description]]
   const formattedData = format(queryInsert, queryValues);
-  console.log(formattedData);
   return db.query(formattedData).then(({rows}) => {
     return rows[0];
   });

@@ -11,7 +11,6 @@ function postTopic(req, res, next) {
   insertTopic(slug, description).then((topic) => {
     res.status(201).send({ topic });
   }).catch((err)=>{
-    console.log(err);
     next(err)})
 }
 
