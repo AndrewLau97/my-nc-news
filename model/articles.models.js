@@ -161,6 +161,10 @@ function countArticles(topic) {
   });
 }
 
+function deleteCommentFromDB(article_id){
+  return db.query(`DELETE FROM articles WHERE article_id = $1`,[article_id])
+}
+
 module.exports = {
   fetchArticleById,
   fetchArticle,
@@ -171,4 +175,5 @@ module.exports = {
   checkIfArticleExists,
   insertArticle,
   countArticles,
+  deleteCommentFromDB
 };

@@ -8,6 +8,7 @@ const {
   checkIfArticleExists,
   insertArticle,
   countArticles,
+  deleteCommentFromDB,
 } = require("../model/articles.models");
 
 function getArticleById(req, res, next) {
@@ -92,6 +93,18 @@ function postArticle(req, res, next) {
     .catch(next);
 }
 
+function deleteArticleById(req,res,next){
+  const {article_id}=req.params
+  checkIfArticleExists(article_id).then(()=>{
+    return deleteCommentFromDB(article_id)
+  })
+  .then(()=>{
+    res.status(204).send({})
+  }).catch((err)=>{
+    next(err)
+  })
+}
+
 module.exports = {
   getArticleById,
   getArticle,
@@ -99,4 +112,5 @@ module.exports = {
   postCommentOnArticle,
   patchArticle,
   postArticle,
+  deleteArticleById
 };
