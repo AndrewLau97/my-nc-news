@@ -117,8 +117,8 @@ describe("GET /api/articles", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
-      .then(({ body: { articles ,total_count} }) => {
-        expect(total_count).toBe(13)
+      .then(({ body: { articles, total_count } }) => {
+        expect(total_count).toBe(13);
         expect(articles).toHaveLength(10);
         articles.forEach((article) => {
           expect(article).toMatchObject({
@@ -246,8 +246,8 @@ describe("GET /api/articles", () => {
     return request(app)
       .get("/api/articles?topic=mitch")
       .expect(200)
-      .then(({ body: { articles ,total_count} }) => {
-        expect(total_count).toBe(12)
+      .then(({ body: { articles, total_count } }) => {
+        expect(total_count).toBe(12);
         expect(articles).toHaveLength(10);
         articles.forEach((article) => {
           expect(article.topic).toBe("mitch");
@@ -266,9 +266,9 @@ describe("GET /api/articles", () => {
     return request(app)
       .get("/api/articles?topic=")
       .expect(200)
-      .then(({ body: { articles ,total_count} }) => {
+      .then(({ body: { articles, total_count } }) => {
         expect(total_count).toBe(13);
-        expect(articles).toHaveLength(10)
+        expect(articles).toHaveLength(10);
         articles.forEach((article) => {
           expect(article).toMatchObject({
             article_id: expect.any(Number),
@@ -286,7 +286,7 @@ describe("GET /api/articles", () => {
     return request(app)
       .get("/api/articles?sort_by=author&order=asc&topic=mitch")
       .expect(200)
-      .then(({ body: { articles,total_count } }) => {
+      .then(({ body: { articles, total_count } }) => {
         expect(total_count).toBe(12);
         expect(articles).toBeSortedBy("author", { descending: false });
       });
@@ -526,7 +526,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       .get("/api/articles/1/comments")
       .expect(200)
       .then(({ body: { comments } }) => {
-        expect(comments).toHaveLength(11);
+        expect(comments).toHaveLength(10);
         comments.forEach((comment) => {
           expect(comment).toMatchObject({
             comment_id: expect.any(Number),
@@ -553,6 +553,79 @@ describe("GET /api/articles/:article_id/comments", () => {
       .expect(200)
       .then(({ body: { comments } }) => {
         expect(comments).toEqual([]);
+      });
+  });
+  test("200: Takes in Limit query which limits number of responses", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=5")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(5);
+      });
+  });
+  test("200: If no limit, default limit is 10", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(10);
+      });
+  });
+  test("200: Takes in a P (page) query which specifies the page at which to start at", () => {
+    return request(app)
+      .get("/api/articles/1/comments?p=2")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(1);
+      });
+  });
+  test("200: If no P (page) given, default page is set to 1", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(10);
+      });
+  });
+  test("200: Contains Limit and P query, returns given page, by limit",()=>{
+    return request(app)
+    .get("/api/articles/1/comments?limit=5&p=2")
+    .expect(200)
+    .then(({body:{comments}})=>{
+      expect(comments).toHaveLength(5);
+      expect(comments[0].article_id).toBe(1)
+    })
+  })
+  test("400: P query is not a number", () => {
+    return request(app)
+      .get("/api/articles/1/comments?p=not-a-number")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: P query is less than 1", () => {
+    return request(app)
+      .get("/api/articles/1/comments?p=0")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: Limit query is not a number", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=not-a-number")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
+      });
+  });
+  test("400: Limit query is less than 1", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=0")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Bad request");
       });
   });
   test("404: Article_id does not exist", () => {
