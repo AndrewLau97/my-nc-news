@@ -48,6 +48,58 @@ describe("GET /api/topics", () => {
   });
 });
 
+describe("POST /api/topics", () => {
+  test("201: Post body to topics, and responds with the newly added topic", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({
+        slug: "test-topic",
+        description: "to test",
+      })
+      .expect(201)
+      .then(({ body: { topic } }) => {
+        expect(topic).toMatchObject({
+          slug: "test-topic",
+          description: "to test",
+        });
+      });
+  });
+  test("201: Post body, even when description is missing", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({
+        slug: "test-topic",
+      })
+      .expect(201)
+      .then(({ body: { topic } }) => {
+        expect(topic).toEqual({
+          slug: "test-topic",
+          description: null,
+        });
+      });
+  });
+  test("400: Slug already exists", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({
+        slug: "mitch",
+      })
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Topic already exists");
+      });
+  });
+  test("400: Slug key is missing from body", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({
+      })
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Missing information");
+      });
+  });
+});
 describe("Wrong URL", () => {
   test("404: Responds with Not Found when requesting from an incorrect URL", () => {
     return request(app)
@@ -587,15 +639,15 @@ describe("GET /api/articles/:article_id/comments", () => {
         expect(comments).toHaveLength(10);
       });
   });
-  test("200: Contains Limit and P query, returns given page, by limit",()=>{
+  test("200: Contains Limit and P query, returns given page, by limit", () => {
     return request(app)
-    .get("/api/articles/1/comments?limit=5&p=2")
-    .expect(200)
-    .then(({body:{comments}})=>{
-      expect(comments).toHaveLength(5);
-      expect(comments[0].article_id).toBe(1)
-    })
-  })
+      .get("/api/articles/1/comments?limit=5&p=2")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(5);
+        expect(comments[0].article_id).toBe(1);
+      });
+  });
   test("400: P query is not a number", () => {
     return request(app)
       .get("/api/articles/1/comments?p=not-a-number")
