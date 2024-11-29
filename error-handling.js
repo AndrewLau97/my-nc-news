@@ -14,6 +14,9 @@ exports.psqlErrors = (err, req, res, next) => {
   else if(err.code==="23502"){
     res.status(400).send({message:"Missing information"})
   }
+  else if(err.code==="23505"&&err.detail.includes("slug")){
+    res.status(400).send({message:"Topic already exists"})
+  }
   else {
     next(err);
   }
