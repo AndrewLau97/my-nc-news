@@ -490,6 +490,14 @@ describe("GET /api/articles", () => {
         expect(articles).toHaveLength(3);
       });
   });
+  test("200: If P query goes past pages amount after limits, should respond with the last P query that had responses", () => {
+    return request(app)
+      .get("/api/articles?p=9001")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toHaveLength(3);
+      });
+  });
   test("200: No P query, defaults P to 1", () => {
     return request(app)
       .get("/api/articles")

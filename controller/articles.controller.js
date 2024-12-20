@@ -24,20 +24,33 @@ function getArticleById(req, res, next) {
 
 function getArticle(req, res, next) {
   const { sort_by, order, topic, limit, p } = req.query;
-  const promises = [
-    fetchArticle(sort_by, order, topic, limit, p),
-    countArticles(topic),
-  ];
-  if (topic) {
-    promises.push(checkTopicExists(topic));
+  // const promises = [
+  //   fetchArticle(sort_by, order, topic, limit, p),
+  //   countArticles(topic),
+  // ];
+  // if (topic) {
+  //   promises.push(checkTopicExists(topic));
+  // }
+  // Promise.all(promises)
+  //   .then(([articles, total_count]) => {
+  //     res.status(200).send({ articles, total_count });
+  //   })
+  //   .catch((err) => {
+  //     next(err);
+  //   });
+  const promises=[countArticles(topic)]
+  if(topic){
+    promises.push(checkTopicExists(topic))
   }
   Promise.all(promises)
-    .then(([articles, total_count]) => {
-      res.status(200).send({ articles, total_count });
-    })
-    .catch((err) => {
-      next(err);
-    });
+  .then(([total_count])=>{
+    return Promise.all([fetchArticle(sort_by, order, topic, limit, p,total_count), total_count])
+  })
+  .then(([articles, total_count])=>{
+    res.status(200).send({articles, total_count})
+  }).catch((err)=>{
+    next(err)
+  })
 }
 
 function getAllCommentsFromAnArticle(req, res, next) {
