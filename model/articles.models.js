@@ -26,12 +26,62 @@ function checkIfArticleExists(article_id) {
   });
 }
 
+// function fetchArticle(
+//   sort_by = "created_at",
+//   order = "desc",
+//   topic,
+//   limit = 10,
+//   p = 1
+// ) {
+//   const validOrderQueries = /^(asc)$|^(desc)$/i;
+//   const validSortByQueries = [
+//     "article_id",
+//     "title",
+//     "topic",
+//     "author",
+//     "created_at",
+//     "votes",
+//     "comment_count",
+//   ];
+//   const offset = (p - 1) * limit;
+//   if (
+//     !validOrderQueries.test(order) ||
+//     !validSortByQueries.includes(sort_by.toLowerCase()) ||
+//     limit <= 0 ||
+//     p <= 0
+//   ) {
+//     return Promise.reject({ status: 400, message: "Bad request" });
+//   }
+//   const queryValues = [];
+//   let queryInsert = `SELECT articles.article_id, articles.author, title, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.body) AS comment_count
+//  FROM articles LEFT JOIN comments
+//  ON articles.article_id=comments.article_id `;
+//   if (topic) {
+//     queryInsert += `WHERE topic = $1 `;
+//     queryValues.push(topic);
+//   }
+//   queryInsert += `GROUP BY articles.article_id
+//   ORDER BY ${sort_by} ${order} `;
+//   if (topic) {
+//     queryInsert += `LIMIT $2 OFFSET $3`;
+//   } else {
+//     queryInsert += `LIMIT $1 OFFSET $2`;
+//   }
+//   queryValues.push(limit);
+//   queryValues.push(offset);
+
+//   return db.query(queryInsert, queryValues).then(({ rows }) => {
+//     return rows;
+//   });
+// }
+
 function fetchArticle(
   sort_by = "created_at",
   order = "desc",
   topic,
   limit = 10,
-  p = 1
+  p = 1,
+  total_count
 ) {
   const validOrderQueries = /^(asc)$|^(desc)$/i;
   const validSortByQueries = [
@@ -43,7 +93,6 @@ function fetchArticle(
     "votes",
     "comment_count",
   ];
-  const offset = (p - 1) * limit;
   if (
     !validOrderQueries.test(order) ||
     !validSortByQueries.includes(sort_by.toLowerCase()) ||
@@ -52,6 +101,8 @@ function fetchArticle(
   ) {
     return Promise.reject({ status: 400, message: "Bad request" });
   }
+  const lastPage = Math.ceil(total_count / limit);
+  const offset = p > lastPage ? (lastPage - 1) * limit : (p - 1) * limit;
   const queryValues = [];
   let queryInsert = `SELECT articles.article_id, articles.author, title, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.body) AS comment_count 
  FROM articles LEFT JOIN comments
@@ -63,9 +114,9 @@ function fetchArticle(
   queryInsert += `GROUP BY articles.article_id 
   ORDER BY ${sort_by} ${order} `;
   if (topic) {
-    queryInsert += `LIMIT $2 OFFSET $3`;
+    queryInsert += `LIMIT $2 OFFSET GREATEST($3,0)`;
   } else {
-    queryInsert += `LIMIT $1 OFFSET $2`;
+    queryInsert += `LIMIT $1 OFFSET GREATEST($2,0)`;
   }
   queryValues.push(limit);
   queryValues.push(offset);
@@ -75,13 +126,13 @@ function fetchArticle(
   });
 }
 
-function fetchAllCommentsFromAnArticle(article_id, limit=10,page=1) {
-  if(limit<=0 || page<=0){
-    return Promise.reject({status:400,message:"Bad request"})
+function fetchAllCommentsFromAnArticle(article_id, limit = 10, page = 1) {
+  if (limit <= 0 || page <= 0) {
+    return Promise.reject({ status: 400, message: "Bad request" });
   }
-  const offset=(page-1)*limit
+  const offset = (page - 1) * limit;
   let queryInsert = `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC `;
-  queryInsert+=`LIMIT $2 OFFSET $3`
+  queryInsert += `LIMIT $2 OFFSET $3`;
   return db.query(queryInsert, [article_id, limit, offset]).then((results) => {
     return results.rows;
   });
@@ -161,8 +212,8 @@ function countArticles(topic) {
   });
 }
 
-function deleteCommentFromDB(article_id){
-  return db.query(`DELETE FROM articles WHERE article_id = $1`,[article_id])
+function deleteCommentFromDB(article_id) {
+  return db.query(`DELETE FROM articles WHERE article_id = $1`, [article_id]);
 }
 
 module.exports = {
@@ -175,5 +226,5 @@ module.exports = {
   checkIfArticleExists,
   insertArticle,
   countArticles,
-  deleteCommentFromDB
+  deleteCommentFromDB,
 };
